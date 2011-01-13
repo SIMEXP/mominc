@@ -116,7 +116,6 @@ end
 %% Matlab and MINC1 %%
 %%%%%%%%%%%%%%%%%%%%%%
 function [hdr,vol] = sub_read_matlab_minc1(hdr,ncid,ndims,nvars,ngatts)
-
 hdr.file_name = '';
 
 %% Read global attributes
@@ -152,9 +151,8 @@ netcdf.close(ncid);
 %%%%%%%%%%%%%%%%%%%%%%
 
 function [hdr,vol] = sub_read_matlab_minc2(str_data,hdr,file_name)
-
-hdr.history   = hdf5read(file_name,'/minc-2.0/','history');
-hdr.ident     = hdf5read(file_name,'/minc-2.0/','ident');
+hdr.history = hdf5read(file_name,'/minc-2.0/history');
+hdr.ident     = hdf5read(file_name,'/minc-2.0/ident');
 hdr.file_name = '';
 labels        = {str_data.GroupHierarchy.Groups.Groups(:).Name};
 
@@ -164,7 +162,7 @@ list_dimensions = {str_data.GroupHierarchy.Groups.Groups(mask_dim).Datasets(:).N
 
 for num_d = 1:length(list_dimensions)
     hdr.dimensions(num_d).name        = list_dimensions{num_d}(22:end);
-    hdr.dimensions(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Shortname};
+    hdr.dimensions(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Name};
     hdr.dimensions(num_d).values      = {str_data.GroupHierarchy.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Value};
 end
 
@@ -174,7 +172,7 @@ if ~isempty(str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets)
     list_info = {str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets(:).Name};
     for num_d = 1:length(list_info)
         hdr.info(num_d).name        = list_info{num_d}(16:end);
-        hdr.info(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Shortname};
+        hdr.info(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Name};
         hdr.info(num_d).values      = {str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Value};
     end
 else
@@ -188,7 +186,7 @@ mask_image  = ismember(labels,'/minc-2.0/image');
 list_image = {str_data.GroupHierarchy.Groups.Groups(mask_image).Groups.Datasets(:).Name};
 for num_d = 1:length(list_image)
     hdr.image(num_d).name        = list_image{num_d}(19:end);
-    hdr.image(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Shortname};
+    hdr.image(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Name};
     hdr.image(num_d).values      = {str_data.GroupHierarchy.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Value};
 end
 
