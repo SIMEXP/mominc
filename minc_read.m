@@ -105,9 +105,9 @@ else
         end
     else
         if nargout>1
-            [hdr,vol] = sub_read_matlab_minc2(str_data,hdr);
+            [hdr,vol] = sub_read_matlab_minc2(str_data,hdr,file_name);
         else
-            hdr = sub_read_matlab_minc2(str_data,hdr);
+            hdr = sub_read_matlab_minc2(str_data,hdr,file_name);
         end
     end
 end
@@ -151,7 +151,7 @@ netcdf.close(ncid);
 %% Matlab and MINC2 %%
 %%%%%%%%%%%%%%%%%%%%%%
 
-function [hdr,vol] = sub_read_matlab_minc2(str_data,hdr)
+function [hdr,vol] = sub_read_matlab_minc2(str_data,hdr,file_name)
 
 hdr.history   = hdf5read(file_name,'/minc-2.0/','history');
 hdr.ident     = hdf5read(file_name,'/minc-2.0/','ident');
