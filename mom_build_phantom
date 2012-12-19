@@ -49,6 +49,9 @@ if [$# == 1]
     else FORM=$2;
 fi
     
+# Create the target folder
+mkdir $1
+
 # Generate the phantom
 make_phantom -clob -width 5 7 9 -nelement 10 15 20 -fill_value 1.0 -back 0.0 \
       -center  6 8 10 -ellipse -step 2 2 2 -start -4 -3 -2  $1/phantom_source_init.mnc
