@@ -1,5 +1,5 @@
 function [hdr,vol] = minc_read(file_name,opt)
-% Read 3D or 3D+t data in MINC format.
+% Read a MINC file
 % To learn more about the MINC format :
 % http://en.wikibooks.org/wiki/MINC
 %
@@ -32,18 +32,23 @@ function [hdr,vol] = minc_read(file_name,opt)
 % _________________________________________________________________________
 % COMMENTS:
 %
-% The strategy is different in Matlab and Octave.
-% In Matlab, the strategy is different for MINC1 (NetCDF) and MINC2 (HDF5).
+% NOTE 1:
+%   The strategy is different in Matlab and Octave.
+%   In Matlab, the strategy is different for MINC1 (NetCDF) and MINC2 (HDF5).
 %
-% In Matlab :
-% For MINC1, the function uses the NetCDF Matlab libraries. For MINC2, it
-% uses the HDF5 Matlab libraries.
-% For MINC2 files, the multiresolution feature is not supported. Only full
-% resolution images are read.
+%   In Matlab :
+%      For MINC1, the function uses the NetCDF Matlab libraries. For MINC2, it
+%      uses the HDF5 Matlab libraries.
+%      For MINC2 files, the multiresolution feature is not supported. Only full
+%      resolution images are read.
 %
-% In Octave :
-% The function uses system calls to MINCINFO (for minc1), MINCHEADER and 
-% MINCTORAW which requires a proper install of minc tools.
+%   In Octave :
+%      The function uses system calls to MINCINFO (for minc1), MINCHEADER and 
+%      MINCTORAW which requires a proper install of minc tools.
+%
+% NOTE 2:
+%   VOL is the raw numerical array stored in the MINC file, in the so-called
+%   voxel world. In particular, no operation is made to re-order dimensions. 
 %
 % Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
 % gériatrie de Montréal, Département d'informatique et de recherche
