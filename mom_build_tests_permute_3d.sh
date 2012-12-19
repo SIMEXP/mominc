@@ -1,4 +1,38 @@
 #!/bin/sh
+#
+# Syntax:
+# mom_build_tests_permute_3d.sh <source> <base>
+#
+# will generate a series of files
+#    <base>_z<zstep>_<type>_<view>.mnc
+#
+# Each file is the same as <source> after some reshaping, with
+#   <zstep> in - +
+#   <type> in byte ubyte short ushort long ulong float double
+#   <view> in cor trans sag xyz yzx zxy
+#
+# Copyright Louis Collins, McGill University
+# Pierre Bellec, University of Montreal
+# See licensing information in the code.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 for zstep in - +
 do
     for type in byte ubyte short ushort long ulong float double
@@ -25,12 +59,12 @@ do
 
        for view in cor trans sag
        do
-          mincreshape -dimsize "zspace"=-1 -dimsize "yspace"=-1 -dimsize "xspace"=-1 "$zstep"zdirection -clob -${view} $1 $opts "$2"_${zstep}_${type}_${view}.mnc
+          mincreshape -dimsize "zspace"=-1 -dimsize "yspace"=-1 -dimsize "xspace"=-1 "$zstep"zdirection -clob -${view} $1 $opts "$2"_z${zstep}_${type}_${view}.mnc
        done
 
-       mincreshape -dimsize "zspace"=-1 -dimsize "yspace"=-1 -dimsize "xspace"=-1 ${zstep}zdirection -clob -dimorder xspace,yspace,zspace $opts $1 "$2"_${zstep}_${type}_xyz.mnc
-       mincreshape -dimsize "zspace"=-1 -dimsize "yspace"=-1 -dimsize "xspace"=-1 ${zstep}zdirection -clob -dimorder yspace,zspace,xspace $opts $1 "$2"_${zstep}_${type}_yzx.mnc
-       mincreshape -dimsize "zspace"=-1 -dimsize "yspace"=-1 -dimsize "xspace"=-1 ${zstep}zdirection -clob -dimorder zspace,xspace,yspace $opts $1 "$2"_${zstep}_${type}_zxy.mnc
+       mincreshape -dimsize "zspace"=-1 -dimsize "yspace"=-1 -dimsize "xspace"=-1 ${zstep}zdirection -clob -dimorder xspace,yspace,zspace $opts $1 "$2"_z${zstep}_${type}_xyz.mnc
+       mincreshape -dimsize "zspace"=-1 -dimsize "yspace"=-1 -dimsize "xspace"=-1 ${zstep}zdirection -clob -dimorder yspace,zspace,xspace $opts $1 "$2"_z${zstep}_${type}_yzx.mnc
+       mincreshape -dimsize "zspace"=-1 -dimsize "yspace"=-1 -dimsize "xspace"=-1 ${zstep}zdirection -clob -dimorder zspace,xspace,yspace $opts $1 "$2"_z${zstep}_${type}_zxy.mnc
 
        rm -f mnc_${type}.mnc
     done

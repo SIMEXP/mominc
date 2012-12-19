@@ -50,10 +50,13 @@ rm "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_nlin_sym_09c_minc1.zip
 # Generate an anistropic voxel size 1x1x1.2
 
 # T1
-mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_t1_tal_nlin_sym_09c.mnc "$1"/t1_int_zstep+_zyx.mnc
+mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_t1_tal_nlin_sym_09c.mnc "$1"/t1_source.mnc
+mom_build_tests_permute_3d "$1"/t1_source.mnc "$1"/t1
 
 # T2
-mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_t2_tal_nlin_sym_09c.mnc "$1"/t2_int_zstep+_zyx.mnc
+mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_t2_tal_nlin_sym_09c.mnc "$1"/t2_source.mnc
+mom_build_tests_permute_3d "$1"/t1_source.mnc "$1"/t2
 
 # PD
-mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_pd_tal_nlin_sym_09c.mnc "$1"/pd_int_zstep+_zyx.mnc
+mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_pd_tal_nlin_sym_09c.mnc "$1"/pd_source.mnc
+mom_build_tests_permute_3d "$1"/t1_source.mnc "$1"/pd
