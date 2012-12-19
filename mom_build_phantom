@@ -1,0 +1,74 @@
+#!/bin/bash
+#
+# Generate a small phantom in MINC1, with a variety of z-step, dimension order, and
+# data types.
+#
+# The phantome is generated with the make_phantom command (part of the MINC tools)
+#
+# Syntax
+# ./mom_build_phantom <target> <type>
+#
+# <target> is the target directory
+# <type> is either minc1 or minc2 (default minc2)
+#
+# The script will download all the files in the <target> directory
+#
+# WARNING for the MINC1 option to work, the following global environment 
+# variable needs to be set:
+# export MINC_FORCE_V2=0
+#
+# Pierre Bellec - pierre.bellec@criugm.qc.ca
+# Computer science and operations research department
+# Centre de recherche de l'institut de geriatrie de Montreal
+# University of Montreal
+#
+# Copyright Pierre Bellec, University of Montreal
+# See licensing information in the code.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+# default for output format
+if [$# == 1]
+    then FORM="minc2";
+    else FORM=$2;
+fi
+    
+# Generate the phantom
+make_phantom -clob -width 5 7 9 -nelement 10 15 20 -fill_value 1.0 -back 0.0 \
+      -center  6 8 10 -ellipse -step 2 2 2 -start -4 -3 -2  $1/phantom_source_init.mnc
+
+# Convert in the appropriate version of minc 
+if [FORM == "minc2"];
+    then  mincconvert -2 $1/phantom_source_init.mnc $1/phantom_source.mnc ;
+    else  mv $1/phantom_source_init.mnc $1/phantom_source.mnc;
+fi
+    
+# Generate the 3D volumes with a reduced field of view (30x20x10 array). 
+# Apply a slight rotation (30 degrees in x, -30 degrees in y, 0 degrees in z)
+# Generate an anistropic voxel size 1x1x1.2
+# FYI the direction cosines are:
+# in x:  0.86603   0.00000   0.50000
+# in y: -0.25000   0.86603   0.43301
+# in z: -0.43301  -0.50000   0.75000
+
+mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos -0.43301  -0.50000   0.75000 -ydircos -0.25000   0.86603   0.43301 -xdircos 0.86603   0.00000   0.50000 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_t1_tal_nlin_sym_09c.mnc "$1"/phantom_source.mnc
+mom_build_tests_permute_3d "$1"/phantom_source.mnc "$1"/phantom
+
+# Clean-up
+rm -rf "$1"/phantom_source.mnc
