@@ -2,13 +2,13 @@
 #
 # Generate a series of small MR 3D test images with different contrast:
 #    T1, T2, PD as well as label data
-# The test datasets are slabs of the MNI ICBM 152 2009c template in MINC1
-# http://www.bic.mni.mcgill.ca/~vfonov/icbm/2009/mni_icbm152_nlin_sym_09c_minc1.zip
+# The test datasets are slabs of the MNI ICBM 152 2009c template in MINC2
+# http://www.bic.mni.mcgill.ca/~vfonov/icbm/2009/mni_icbm152_nlin_sym_09c_minc2.zip
 #
 # Syntax
 # ./mincItk_build_small_test_t1_t2_pd.sh <target>
 #
-# The script will download the templates in a folder mni_icbm152_nlin_sym_09c_minc1
+# The script will download the templates in a folder mni_icbm152_nlin_sym_09c_minc2
 # inside the <target> directory, as well as a bunch of files.
 #
 # Pierre Bellec - pierre.bellec@criugm.qc.ca
@@ -40,27 +40,27 @@
 
 # grab the MNI template 
 mkdir $1
-mkdir $1/mni_icbm152_nlin_sym_09c_minc1
-wget http://www.bic.mni.mcgill.ca/~vfonov/icbm/2009/mni_icbm152_nlin_sym_09c_minc1.zip -O "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_nlin_sym_09c_minc1.zip
-unzip "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_nlin_sym_09c_minc1.zip -d "$1"/mni_icbm152_nlin_sym_09c_minc1/
-rm "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_nlin_sym_09c_minc1.zip
+mkdir $1/mni_icbm152_nlin_sym_09c_minc2
+wget http://www.bic.mni.mcgill.ca/~vfonov/icbm/2009/mni_icbm152_nlin_sym_09c_minc2.zip -O "$1"/mni_icbm152_nlin_sym_09c_minc2/mni_icbm152_nlin_sym_09c_minc2.zip
+unzip "$1"/mni_icbm152_nlin_sym_09c_minc2/mni_icbm152_nlin_sym_09c_minc2.zip -d "$1"/mni_icbm152_nlin_sym_09c_minc2/
+rm "$1"/mni_icbm152_nlin_sym_09c_minc2/mni_icbm152_nlin_sym_09c_minc2.zip
 
 # Generate the 3D volumes with a reduced field of view (30x20x10 array). 
 # Apply a slight rotation (1 degree in x, 2 degrees in y, 3 degrees in z)
 # Generate an anistropic voxel size 1x1x1.2
 
 # T1
-mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_t1_tal_nlin_sym_09c.mnc "$1"/t1_source.mnc
+mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc2/mni_icbm152_t1_tal_nlin_sym_09c.mnc "$1"/t1_source.mnc
 mom_build_tests_permute_3d "$1"/t1_source.mnc "$1"/t1
 
 # T2
-mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_t2_tal_nlin_sym_09c.mnc "$1"/t2_source.mnc
+mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc2/mni_icbm152_t2_tal_nlin_sym_09c.mnc "$1"/t2_source.mnc
 mom_build_tests_permute_3d "$1"/t1_source.mnc "$1"/t2
 
 # PD
-mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_pd_tal_nlin_sym_09c.mnc "$1"/pd_source.mnc
+mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc2/mni_icbm152_pd_tal_nlin_sym_09c.mnc "$1"/pd_source.mnc
 mom_build_tests_permute_3d "$1"/t1_source.mnc "$1"/pd
 
 # Clean-up
-rm -rf "$1"/mni_icbm152_nlin_sym_09c_minc1
+rm -rf "$1"/mni_icbm152_nlin_sym_09c_minc2
 rm -rf "$1"/*_source.mnc
