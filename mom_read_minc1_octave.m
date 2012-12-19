@@ -4,7 +4,7 @@ function [hdr,vol] = mom_read_minc1_octave(file_name,opt)
 % http://en.wikibooks.org/wiki/MINC
 %
 % SYNTAX:
-% [HDR,VOL] = MOM_READ_MINC1_MATLAB(FILE_NAME)
+% [HDR,VOL] = MOM_READ_MINC1_OCTAVE(FILE_NAME)
 %
 % INPUTS:
 %    FILE_NAME (string) the name of a minc file
@@ -30,7 +30,7 @@ function [hdr,vol] = mom_read_minc1_octave(file_name,opt)
 %
 % Maintainer : pierre.bellec@criugm.qc.ca
 % See licensing information in the code.
-% Keywords : medical imaging, I/O, reader, minc, minc1, matlab
+% Keywords : medical imaging, I/O, reader, minc, minc1, octave
 
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal
@@ -50,8 +50,22 @@ function [hdr,vol] = mom_read_minc1_octave(file_name,opt)
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 % THE SOFTWARE.
 
-ncid     = netcdf.open(file_name,'NOWRITE');
-[ndims,nvars,ngatts] = netcdf.inq(ncid);
+%% Open file
+ncid = netcdf(file_name,'nowrite');
+
+%% Read info on dimensions
+dims = ncdim(ncid);
+ndims = length(dims);
+
+%% Read info on variables
+var = ncvar(ncid);
+nvars = length(var);
+
+%% Read info on attributes
+att = ncatt(ncid);
+ngatts = length(att);
+
+%% Initialize the header
 hdr.type = 'minc1';
 hdr.file_name = '';
 
