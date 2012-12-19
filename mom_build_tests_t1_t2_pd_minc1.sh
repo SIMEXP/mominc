@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# Generate a series of small MR 3D test images with different contrast:
+#    T1, T2, PD as well as label data
+# The test datasets are slabs of the MNI ICBM 152 2009c template in MINC1
+# http://www.bic.mni.mcgill.ca/~vfonov/icbm/2009/mni_icbm152_nlin_sym_09c_minc1.zip
+#
+# Syntax
+# ./mincItk_build_small_test_t1_t2_pd.sh <target>
+#
+# The script will download the templates in a folder mni_icbm152_nlin_sym_09c_minc1
+# inside the <target> directory, as well as a bunch of files.
+#
+# Pierre Bellec - pierre.bellec@criugm.qc.ca
+# Computer science and operations research department
+# Centre de recherche de l'institut de geriatrie de Montreal
+# University of Montreal
+#
+# Copyright Pierre Bellec, University of Montreal
+# See licensing information in the code.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+
+# grab the MNI template 
+mkdir $1
+mkdir $1/mni_icbm152_nlin_sym_09c_minc1
+wget http://www.bic.mni.mcgill.ca/~vfonov/icbm/2009/mni_icbm152_nlin_sym_09c_minc1.zip -O "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_nlin_sym_09c_minc1.zip
+unzip "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_nlin_sym_09c_minc1.zip -d "$1"/mni_icbm152_nlin_sym_09c_minc1/
+rm "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_nlin_sym_09c_minc1.zip
+
+# Generate the 3D volumes with a reduced field of view (30x20x10 array). 
+# Apply a slight rotation (1 degree in x, 2 degrees in y, 3 degrees in z)
+# Generate an anistropic voxel size 1x1x1.2
+
+# T1
+mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_t1_tal_nlin_sym_09c.mnc "$1"/t1_int_zstep+_zyx.mnc
+
+# T2
+mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_t2_tal_nlin_sym_09c.mnc "$1"/t2_int_zstep+_zyx.mnc
+
+# PD
+mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos 0.035760  -0.015602   0.999239 -ydircos -0.051720   0.998509   0.017442 -xdircos 0.998021   0.052304  -0.034899 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_pd_tal_nlin_sym_09c.mnc "$1"/pd_int_zstep+_zyx.mnc
