@@ -44,11 +44,12 @@
 # THE SOFTWARE.
 
 # default for output format
-if [$# == 1]
+if [ $# == 1 ]
     then FORM="minc2";
     else FORM=$2;
 fi
-    
+
+echo $FORM
 # Create the target folder
 mkdir $1
 
@@ -57,7 +58,7 @@ make_phantom -clob -width 5 7 9 -nelement 10 15 20 -fill_value 1.0 -back 0.0 \
       -center  6 8 10 -ellipse -step 2 2 2 -start -4 -3 -2  $1/phantom_source_init.mnc
 
 # Convert in the appropriate version of minc 
-if [FORM == "minc2"];
+if [ $FORM == "minc2" ];
     then  mincconvert -2 $1/phantom_source_init.mnc $1/phantom_source.mnc ;
     else  mv $1/phantom_source_init.mnc $1/phantom_source.mnc;
 fi
@@ -69,9 +70,13 @@ fi
 # in x:  0.86603   0.00000   0.50000
 # in y: -0.25000   0.86603   0.43301
 # in z: -0.43301  -0.50000   0.75000
+minc_modify_header -dinsert  xspace:direction_cosines=0.86603,0.00000,0.50000 "$1"/phantom_source.mnc
+minc_modify_header -dinsert  yspace:direction_cosines=-0.25000,0.86603,0.43301  "$1"/phantom_source.mnc
+minc_modify_header -dinsert  zspace:direction_cosines=-0.43301,-0.50000,0.75000 "$1"/phantom_source.mnc
+minc_modify_header -dinsert  zspace:step=2.2 "$1"/phantom_source.mnc
 
-mincresample -zstart -10 -znelements 10 -ystart 60 -ynelements 40 -xstart -18 -xnelements 30 -clobber -zdircos -0.43301  -0.50000   0.75000 -ydircos -0.25000   0.86603   0.43301 -xdircos 0.86603   0.00000   0.50000 -zstep 1.2 "$1"/mni_icbm152_nlin_sym_09c_minc1/mni_icbm152_t1_tal_nlin_sym_09c.mnc "$1"/phantom_source.mnc
+# Generate all possible zstep, dimension orders and data type
 mom_build_tests_permute_3d "$1"/phantom_source.mnc "$1"/phantom
 
 # Clean-up
-rm -rf "$1"/phantom_source.mnc
+rm -rf "$1"/phantom_source*
