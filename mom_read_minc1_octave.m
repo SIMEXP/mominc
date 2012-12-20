@@ -51,18 +51,18 @@ function [hdr,vol] = mom_read_minc1_octave(file_name,opt)
 % THE SOFTWARE.
 
 %% Open file
-ncid = netcdf(file_name,'nowrite');
+nc = netcdf(file_name,'nowrite');
 
 %% Read info on dimensions
-dims = ncdim(ncid);
+dims = ncdim(nc);
 ndims = length(dims);
 
 %% Read info on variables
-var = ncvar(ncid);
+var = ncvar(nc);
 nvars = length(var);
 
 %% Read info on attributes
-att = ncatt(ncid);
+att = ncatt(nc);
 ngatts = length(att);
 
 %% Initialize the header
@@ -71,28 +71,64 @@ hdr.file_name = '';
 
 %% Read global attributes
 for num_g = 1:ngatts
-    hdr.globals(num_g).name = netcdf.inqAttName(ncid,netcdf.getConstant('NC_GLOBAL'),num_g-1);
-    hdr.globals(num_g).value = netcdf.GetAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.globals(num_g).name);
+    hdr.globals(num_g).name = ncname(att{num_g});
+    hdr.globals(num_g).type = ncdatatype(att{num_g});
+    hdr.globals(num_g).value = att{num_g}(:);
 end
 
 %% Read variables
 for num_v = 1:nvars
-    [hdr.variables(num_v).name,hdr.variables(num_v).type,dimids,natts] = netcdf.inqVar(ncid,num_v-1);
-    hdr.variables(num_v).attributes                                    = cell([natts 1]);
-    hdr.variables(num_v).values                                        = cell([natts 1]);
+    hdr.variables(num_v).name = ncname(var{num_v});
+    hdr.variables(num_v).type = ncdatatype(var{num_v});
+    attvar = ncatt(var{num_v});
+    natts = length(attvar);
+    hdr.variables(num_v).attributes = cell([natts 1]);
+    hdr.variables(num_v).values     = cell([natts 1]);
+    hdr.variables(num_v).type       = cell([natts 1]);
     for num_a = 1:natts        
-        hdr.variables(num_v).attributes{num_a} = netcdf.inqAttName(ncid,num_v-1,num_a-1);
-        hdr.variables(num_v).values{num_a}     = netcdf.getAtt(ncid,num_v-1,hdr.variables(num_v).attributes{num_a});        
+        hdr.variables(num_v).attributes{num_a} = ncname(attvar{num_a});
+        hdr.variables(num_v).values{num_a}     = attvar{num_a}(:);
+        hdr.variables(num_v).type{num_a}       = ncdatatype(attvar{num_a});
     end
 end
 
 %% Read image-min / image-max
 var_names = {hdr.variables(:).name};
-hdr.data.image_min = netcdf.getVar(ncid,find(ismember(var_names,'image-min'))-1);
-hdr.data.image_max = netcdf.getVar(ncid,find(ismember(var_names,'image-max'))-1);
+ind_min = find(ismember(var_names,'image-min'));
+ind_max = find(ismember(var_names,'image-max'));
+hdr.data.image_min = var{ind_min}(:);
+hdr.data.image_max = var{ind_max}(:);
 
 %% Read volume
 if nargout > 1
-    vol = netcdf.getVar(ncid,find(ismember(var_names,'image'))-1);
+    vol = var{find(ismember(var_names,'image'))}(:);
+    
+    %% Apply intensity normalization
+    if length(hdr.data.image_min)>1
+        %% Check the sanity of slice normalization
+        if (length(hdr.data.image_min)~=size(vol,3))||(length(hdr.data.image_min)~=length(hdr.data.image_max))
+            error('The length of image min/max are not consistent with the size of the volume');
+        end
+        
+        %% This is slice-by-slice normalization
+        for num_s = 1:size(vol,3)
+            slice = vol(:,:,num_s,:);
+            min_s = min(slice(:));
+            max_s = max(slice(:));
+            if (min_s ~= hdr.data.image_min(num_s))||(max_s ~= hdr.data.image_max(num_s))
+                vol(:,:,num_s,:) = ((hdr.data.image_max(num_s)-hdr.data.image_min(num_s))/(max_s-min_s))*(slice-min_s) + hdr.data.image_min(num_s);
+            end
+        end
+    else
+        if (length(hdr.data.image_min)~=length(hdr.data.image_max))
+            error('The length of image min/max are not consistent');
+        end
+        min_s = min(vol(:));
+        max_s = max(vol(:));
+        if (min_s ~= hdr.data.image_min)||(max_s ~= hdr.data.image_max)
+            vol = ((hdr.data.image_max-hdr.data.image_min)/(max_s-min_s))*(vol-min_s) + hdr.data.image_min;
+        end
+    end
 end
-netcdf.close(ncid);
+
+netcdf.close(nc);
