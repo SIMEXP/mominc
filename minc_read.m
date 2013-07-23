@@ -152,7 +152,7 @@ end
 var_names = {hdr.variables(:).name};
 hdr.data.image_min = netcdf.getVar(ncid,find(ismember(var_names,'image-min'))-1);
 hdr.data.image_max = netcdf.getVar(ncid,find(ismember(var_names,'image-max'))-1);
-[tmp,hdr.data.type] = netcdf.inqVar(find(ismember(var_names,'image'))-1);
+[tmp,hdr.data.type] = netcdf.inqVar(ncid,find(ismember(var_names,'image'))-1);
 
 %% Read volume
 if nargout > 1
