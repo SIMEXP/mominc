@@ -34,7 +34,7 @@ function [hdr,vol] = minc_read(file_name,opt)
 
 %% Get information on history
 list_global = {hdr.globals(:).name};
-ind = find(ismember(list_global,'history');
+ind = find(ismember(list_global,'history'));
 if isempty(ind)
     hdr.info.history = '';
 else
