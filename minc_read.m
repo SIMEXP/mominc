@@ -131,6 +131,12 @@ for num_g = 1:ngatts
     hdr.globals(num_g).value = netcdf.getAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.globals(num_g).name);
 end
 
+%% Read dimensions
+for num_d = 1:ndims
+    [hdr.dimensions(num_d).name,hdr.dimensions(num_d).length] = netcdf.inqDim(ncid,num_d-1);
+end
+hdr.dimensions = hdr.dimensions(end:-1:1); % in matlab, ordering of dimensions is reversed compared to NETCDF
+
 %% Read variables
 for num_v = 1:nvars
     [hdr.variables(num_v).name,hdr.variables(num_v).type,dimids,natts] = netcdf.inqVar(ncid,num_v-1);
