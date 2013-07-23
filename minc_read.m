@@ -48,7 +48,7 @@ function [hdr,vol] = minc_read(file_name,opt)
 %
 % NOTE 2:
 %   VOL is the raw numerical array stored in the MINC file, in the so-called
-%   voxel world. In particular, no operation is made to re-order dimensions. 
+%   voxel space. In particular, no operation is made to re-order dimensions. 
 %
 % Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
 % gériatrie de Montréal, Département d'informatique et de recherche
