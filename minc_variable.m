@@ -82,4 +82,4 @@ ind2 = find(ismember(list_att,att_name));
 if isempty(ind2)
     error('Could not find attribute %s in variable %s',att_name,var_name)
 end
-val = varminc.values(ind2);
+val = varminc.values{ind2};
