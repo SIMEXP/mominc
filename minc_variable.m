@@ -64,7 +64,7 @@ if nargin == 1
 end
 
 if nargin >= 2
-    ind = find(ismember(list_var_name));
+    ind = find(ismember(list_var,var_name));
     if isempty(ind)
         error('Could not find variable %s in HDR',var_name)
     end
