@@ -1,9 +1,9 @@
-function [hdr,vol] = minc_read(file_name,opt)
+function info_v = minc_read(file_name,opt)
 % Convert a MINC header into a simplified structure
 % This is called internally by MINC_READ and not meant to be used by itself.
 %
 % SYNTAX:
-% INFO = MINC_HDR2INFO(HDR)
+% INFO_V = MINC_HDR2INFO(HDR)
 %
 % Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
 % gériatrie de Montréal, Département d'informatique et de recherche
@@ -36,24 +36,24 @@ function [hdr,vol] = minc_read(file_name,opt)
 list_global = {hdr.globals(:).name};
 ind = find(ismember(list_global,'history'));
 if isempty(ind)
-    hdr.info.history = '';
+    info_v.history = '';
 else
-    hdr.info.history = hdr.globals(ind).values;
+    info_v.history = hdr.globals(ind).values;
 end
 
 %% Get information on the order of the dimensions
-hdr.info.dimensions = {hdr.dimensions(:).name};
+info_v.dimensions = {hdr.dimensions(:).name};
 
 %% For each dimension, get the step, start and cosines information
 start_v = zeros([3 1]);
 cosines_v = eye([3 3]);
 step_v = zeros([1 3]);
-hdr.info.voxel_size = zeros([1 3]);
+info_v.voxel_size = zeros([1 3]);
 
 num_e = 1;
 
-for num_d = 1:length(hdr.info.dimensions)
-    dim_name = hdr.info.dimensions{num_d};
+for num_d = 1:length(info_v.dimensions)
+    dim_name = info_v.dimensions{num_d};
     if ~strcmp(dim_name,'time')
         try
             step_v(num_e) = minc_variable(hdr,dim_name,'step');
@@ -77,17 +77,17 @@ for num_d = 1:length(hdr.info.dimensions)
         
         num_e = num_e + 1;
     else        
-        hdr.info.tr = minc_variable(hdr,'time','step');
-        hdr.info.t0 = minc_variable(hdr,'time','start');
+        info_v.tr = minc_variable(hdr,'time','step');
+        info_v.t0 = minc_variable(hdr,'time','start');
     end
 end
 
-hdr.info.voxel_size = abs(step_v);
-hdr.info.start = start_v;
-hdr.info.step = step_v;
-hdr.info.direction_cosines = cosines_v;
+info_v.voxel_size = abs(step_v);
+info_v.start = start_v;
+info_v.step = step_v;
+info_v.direction_cosines = cosines_v;
 
 % Constructing the voxel-to-worldspace affine transformation
-hdr.info.mat = eye(4);
-hdr.info.mat(1:3,1:3) = cosines_v * (diag(step_v));
-hdr.info.mat(1:3,4) = cosines_v * start_v;
+info_v.mat = eye(4);
+info_v.mat(1:3,1:3) = cosines_v * (diag(step_v));
+info_v.mat(1:3,4) = cosines_v * start_v;
