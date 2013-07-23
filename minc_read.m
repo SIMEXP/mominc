@@ -126,7 +126,7 @@ hdr.file_name = '';
 %% Read global attributes
 for num_g = 1:ngatts
     hdr.globals(num_g).name = netcdf.inqAttName(ncid,netcdf.getConstant('NC_GLOBAL'),num_g-1);
-    hdr.globals(num_g).value = netcdf.GetAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.globals(num_g).name);
+    hdr.globals(num_g).value = netcdf.getAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.globals(num_g).name);
 end
 
 %% Read variables
