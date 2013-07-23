@@ -117,7 +117,7 @@ else
     end
 end
 
-hdr.info = minc_hdr2info(hdr);
+%hdr.info = minc_hdr2info(hdr);
 
 %%%%%%%%%%%%%%%%%%%%%%
 %% Matlab and MINC1 %%
