@@ -17,12 +17,12 @@ function [hdr,vol] = mom_read_minc1_octave(file_name,opt)
 %    MINC_WRITE
 %
 % EXAMPLE:
-%    [hdr,vol] = mom_read_minc1_matlab('foo.mnc');
+%    [hdr,vol] = mom_read_minc1_octave('foo.mnc');
 %
 % COMMENTS:
 %   NOTE 1: the function uses the Octdf package from octave forge. It has been tested with Octave 1.1.5
 %   NOTE 2: VOL is the raw numerical array stored in the MINC file, in the so-called
-%      voxel world. In particular, no operation is made to re-order dimensions. 
+%      voxel space. In particular, no operation is made to re-order dimensions. 
 %
 % Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
 % gériatrie de Montréal, Département d'informatique et de recherche
@@ -66,7 +66,7 @@ att = ncatt(nc);
 ngatts = length(att);
 
 %% Initialize the header
-hdr.type = 'minc1';
+hdr.format    = 'minc1';
 hdr.file_name = '';
 
 %% Read global attributes
@@ -79,16 +79,26 @@ end
 %% Read variables
 for num_v = 1:nvars
     hdr.variables(num_v).name = ncname(var{num_v});
-    hdr.variables(num_v).type = ncdatatype(var{num_v});
+    hdr.variables(num_v).type = ncdatatype(var{num_v});    
+    hdr.variables(num_v).size = size(var{num_v});
+    dim_names = ncdim(var{num_v});
+    if ~isempty(dim_names)
+        hdr.variables(num_v).dim = cell(length(dim_names),1);
+        for num_d = 1:length(dim_names)
+            hdr.variables(num_v).dim{num_d} = ncname(dim_names{num_d});
+        end
+    else
+        hdr.variables(num_v).dim = {};
+    end
     attvar = ncatt(var{num_v});
     natts = length(attvar);
     hdr.variables(num_v).attributes = cell([natts 1]);
     hdr.variables(num_v).values     = cell([natts 1]);
-    hdr.variables(num_v).type       = cell([natts 1]);
+    hdr.variables(num_v).type_att   = cell([natts 1]);
     for num_a = 1:natts        
         hdr.variables(num_v).attributes{num_a} = ncname(attvar{num_a});
         hdr.variables(num_v).values{num_a}     = attvar{num_a}(:);
-        hdr.variables(num_v).type{num_a}       = ncdatatype(attvar{num_a});
+        hdr.variables(num_v).type_att{num_a}   = ncdatatype(attvar{num_a});
     end
 end
 
@@ -104,13 +114,16 @@ if nargout > 1
     vol = var{find(ismember(var_names,'image'))}(:);
     
     %% Apply intensity normalization
-    if length(hdr.data.image_min)>1
+    if length(hdr.data.image_min)>1 
+    
+        %% This is slice-by-slice normalization
+        
         %% Check the sanity of slice normalization
         if (length(hdr.data.image_min)~=size(vol,3))||(length(hdr.data.image_min)~=length(hdr.data.image_max))
             error('The length of image min/max are not consistent with the size of the volume');
         end
         
-        %% This is slice-by-slice normalization
+        %% Apply normalization on each slice
         for num_s = 1:size(vol,3)
             slice = vol(:,:,num_s,:);
             min_s = min(slice(:));
@@ -131,4 +144,4 @@ if nargout > 1
     end
 end
 
-netcdf.close(nc);
+ncclose(nc);
