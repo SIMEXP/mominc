@@ -1,0 +1,93 @@
+function [hdr,vol] = minc_read(file_name,opt)
+% Convert a MINC header into a simplified structure
+% This is called internally by MINC_READ and not meant to be used by itself.
+%
+% SYNTAX:
+% INFO = MINC_HDR2INFO(HDR)
+%
+% Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
+% gériatrie de Montréal, Département d'informatique et de recherche
+% opérationnelle, Université de Montréal, 2013.
+%
+% Maintainer : pierre.bellec@criugm.qc.ca
+% See licensing information in the code.
+% Keywords : medical imaging, I/O, reader, minc
+
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+%
+% The above copyright notice and this permission notice shall be included in
+% all copies or substantial portions of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+% THE SOFTWARE.
+
+
+%% Get information on history
+list_global = {hdr.globals(:).name};
+ind = find(ismember(list_global,'history');
+if isempty(ind)
+    hdr.info.history = '';
+else
+    hdr.info.history = hdr.globals(ind).values;
+end
+
+%% Get information on the order of the dimensions
+hdr.info.dimensions = {hdr.dimensions(:).name};
+
+%% For each dimension, get the step, start and cosines information
+start_v = zeros([3 1]);
+cosines_v = eye([3 3]);
+step_v = zeros([1 3]);
+hdr.info.voxel_size = zeros([1 3]);
+
+num_e = 1;
+
+for num_d = 1:length(hdr.info.dimensions)
+    dim_name = hdr.info.dimensions{num_d};
+    if ~strcmp(dim_name,'time')
+        try
+            step_v(num_e) = minc_variable(hdr,dim_name,'step');
+        end
+        try
+            cosines_v(:,num_e) = minc_variable(hdr,dim_name,'direction_cosines');
+        catch
+            switch dim_name
+                case 'xspace'
+                    cosines_v(:,num_e) = [1;0;0];
+                case 'yspace'
+                    cosines_v(:,num_e) = [0;1;0];
+                case 'zspace'
+                    cosines_v(:,num_e) = [0;0;1];
+            end
+        end        
+
+        try
+            start_v(:,num_e) = minc_variable(hdr,dim_name,'start');
+        end
+        
+        num_e = num_e + 1;
+    else        
+        hdr.info.tr = minc_variable(hdr,'time','step');
+        hdr.info.t0 = minc_variable(hdr,'time','start');
+    end
+end
+
+hdr.info.voxel_size = abs(step_v);
+hdr.info.start = start_v;
+hdr.info.step = step_v;
+hdr.info.direction_cosines = cosines_v;
+
+% Constructing the voxel-to-worldspace affine transformation
+hdr.info.mat = eye(4);
+hdr.info.mat(1:3,1:3) = cosines_v * (diag(step_v));
+hdr.info.mat(1:3,4) = cosines_v * start_v;
