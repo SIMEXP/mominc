@@ -1,4 +1,4 @@
-function info_v = minc_read(file_name,opt)
+function info_v = minc_hdr2info(hdr)
 % Convert a MINC header into a simplified structure
 % This is called internally by MINC_READ and not meant to be used by itself.
 %
@@ -54,6 +54,7 @@ num_e = 1;
 
 for num_d = 1:length(info_v.dimensions)
     dim_name = info_v.dimensions{num_d};
+
     if ~strcmp(dim_name,'time')
         try
             step_v(num_e) = minc_variable(hdr,dim_name,'step');
@@ -72,7 +73,7 @@ for num_d = 1:length(info_v.dimensions)
         end        
 
         try
-            start_v(:,num_e) = minc_variable(hdr,dim_name,'start');
+            start_v(num_e) = minc_variable(hdr,dim_name,'start');
         end
         
         num_e = num_e + 1;
@@ -90,4 +91,4 @@ info_v.direction_cosines = cosines_v;
 % Constructing the voxel-to-worldspace affine transformation
 info_v.mat = eye(4);
 info_v.mat(1:3,1:3) = cosines_v * (diag(step_v));
-info_v.mat(1:3,4) = cosines_v * start_v;
+info_v.mat(1:3,4)   = cosines_v * start_v;
