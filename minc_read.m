@@ -54,7 +54,7 @@ function [hdr,vol] = minc_read(file_name,opt)
 % gériatrie de Montréal, Département d'informatique et de recherche
 % opérationnelle, Université de Montréal, 2010.
 %
-% Maintainer : pbellec@bic.mni.mcgill.ca
+% Maintainer : pierre.bellec@criugm.qc.ca
 % See licensing information in the code.
 % Keywords : medical imaging, I/O, reader, minc
 
