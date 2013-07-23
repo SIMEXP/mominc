@@ -43,8 +43,8 @@ function [hdr,vol] = minc_read(file_name,opt)
 %      resolution images are read.
 %
 %   In Octave :
-%      The function uses system calls to MINCINFO (for minc1), MINCHEADER and 
-%      MINCTORAW which requires a proper install of minc tools.
+%      Octave is not currently supported, although this is part of the plan 
+%      (with no clear timeline for completion). 
 %
 % NOTE 2:
 %   VOL is the raw numerical array stored in the MINC file, in the so-called
@@ -116,6 +116,8 @@ else
         end
     end
 end
+
+hdr.info = minc_hdr2info(hdr);
 
 %%%%%%%%%%%%%%%%%%%%%%
 %% Matlab and MINC1 %%
