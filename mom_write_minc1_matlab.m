@@ -75,7 +75,6 @@ for num_g = 1:ngatts
 end
 
 %% Create dimensions
-hdr.dimensions = hdr.dimensions(end:-1:1); % ordering of dimensions differ in matlab and netcdf
 dimid = zeros([1 ndim]);
 for num_d = 1:ndim
     dimid(num_d) = netcdf.defDim(nc,hdr.dimensions(num_d).name,hdr.dimensions(num_d).length);
