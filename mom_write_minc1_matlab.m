@@ -44,7 +44,7 @@ function [] = mom_write_minc1_matlab(hdr,vol)
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 % THE SOFTWARE.
 
-if ~strcmp(hdr.format,'minc1')
+if ~strcmp(hdr.type,'minc1')
     error('This writer only supports MINC1')
 end
 
@@ -78,7 +78,7 @@ end
 hdr.dimensions = hdr.dimensions(end:-1:1); % ordering of dimensions differ in matlab and netcdf
 dimid = zeros([1 ndim]);
 for num_d = 1:ndim
-    dimid(num_d) = netcdf.defDim(nc,hdr.dimensions(num_s).name,hdr.dimensions(num_s).length);
+    dimid(num_d) = netcdf.defDim(nc,hdr.dimensions(num_d).name,hdr.dimensions(num_d).length);
 end
 
 %% Set variables
