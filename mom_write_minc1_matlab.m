@@ -87,6 +87,7 @@ for num_v = 1:nvars
     name_v = hdr.variables(num_v).name;
     if strcmp(name_v,'image')
         varid = netcdf.defVar(nc,name_v,hdr.variables(num_v).type,dimid);
+        netcdf.putVar(nc,varid,vol);
     else
         varid = netcdf.defVar(nc,name_v,hdr.variables(num_v).type,[]);
     end
