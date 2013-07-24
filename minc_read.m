@@ -12,10 +12,6 @@ function [hdr,vol] = minc_read(file_name,opt)
 % FILE_NAME
 %   (string) the name of a minc file.
 %
-%
-% OPT
-%   (structure, optional) with the following fields :
-%
 % _________________________________________________________________________
 % OUTPUTS:
 %
@@ -27,7 +23,7 @@ function [hdr,vol] = minc_read(file_name,opt)
 %
 % _________________________________________________________________________
 % SEE ALSO:
-% MINC_WRITE
+% MINC_WRITE, MINC_VOXEL2WORLD, MINC_WORLD2VOXEL, MINC_VARIABLE
 %
 % _________________________________________________________________________
 % COMMENTS:
@@ -39,6 +35,7 @@ function [hdr,vol] = minc_read(file_name,opt)
 %   In Matlab :
 %      For MINC1, the function uses the NetCDF Matlab libraries. For MINC2, it
 %      uses the HDF5 Matlab libraries.
+%
 %      For MINC2 files, the multiresolution feature is not supported. Only full
 %      resolution images are read.
 %
@@ -48,7 +45,7 @@ function [hdr,vol] = minc_read(file_name,opt)
 %
 % NOTE 2:
 %   VOL is the raw numerical array stored in the MINC file, in the so-called
-%   voxel space. In particular, no operation is made to re-order dimensions. 
+%   voxel space. In particular, no operation is made to re-order dimensions.
 %
 % Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
 % gériatrie de Montréal, Département d'informatique et de recherche
