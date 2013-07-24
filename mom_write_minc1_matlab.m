@@ -75,8 +75,8 @@ for num_g = 1:ngatts
 end
 
 %% Create dimensions
-dimid = zeros([1 ndim]);
-for num_d = 1:ndim
+dimid = zeros([1 ndim]); 
+for num_d = ndim:-1:1 % Matlab and NetCDF use different ordering for dimensions
     dimid(num_d) = netcdf.defDim(nc,hdr.dimensions(num_d).name,hdr.dimensions(num_d).length);
 end
 
@@ -86,14 +86,25 @@ for num_v = 1:nvars
     name_v = hdr.variables(num_v).name;
     if strcmp(name_v,'image')
         varid = netcdf.defVar(nc,name_v,hdr.variables(num_v).type,dimid);
-        imgid = varid;
     else
         varid = netcdf.defVar(nc,name_v,hdr.variables(num_v).type,[]);
+    end
+    switch name_v
+        case 'image'
+            imgid = varid;
+        case 'image-min'
+            minid = varid;
+        case 'image-max'
+            maxid = varid;
     end
     for num_a = 1:natts
         netcdf.putAtt(nc,varid,hdr.variables(num_v).attributes{num_a},hdr.variables(num_v).values{num_a});
     end    
 end
+
+%% Write data
 netcdf.endDef(nc);
 netcdf.putVar(nc,imgid,vol);
+netcdf.putVar(nc,minid,min(vol(:)));
+netcdf.putVar(nc,maxid,max(vol(:)));
 netcdf.close(nc);
