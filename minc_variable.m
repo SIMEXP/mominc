@@ -52,9 +52,11 @@ function val = minc_variable(hdr,var_name,att_name)
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 % THE SOFTWARE.
 
-if (nargin<1)||~isstruct(hdr)||~isfield(hdr,'variables')
+if (nargin<1)||~isstruct(hdr)||~isfield(hdr,'details')||~isfield(hdr.details,'variables')||~isfield(hdr.details,'globals')
     error('Please specify a valid HDR structure, see MINC_READ')
 end
+
+hdr = hdr.details;
 
 list_var = {hdr.variables(:).name}; 
 

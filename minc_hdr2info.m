@@ -42,7 +42,7 @@ else
 end
 
 %% Get information on the order of the dimensions
-info_v.dimensions = hdr.info.dimension_order;
+info_v.dimensions = hdr.dimension_order;
 
 %% For each dimension, get the step, start and cosines information
 start_v = zeros([3 1]);
@@ -84,9 +84,6 @@ for num_d = 1:length(info_v.dimensions)
 end
 
 info_v.voxel_size = abs(step_v);
-info_v.start = start_v;
-info_v.step = step_v;
-info_v.direction_cosines = cosines_v;
 
 % Constructing the voxel-to-worldspace affine transformation
 info_v.mat = eye(4);

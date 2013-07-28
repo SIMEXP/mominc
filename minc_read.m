@@ -165,9 +165,10 @@ else
 end
 
 hdr.info = minc_hdr2info(hdr);
+hdr.info.file_parent = which(file_name); % Add the name of the parent file 
 hdr.info.dimension_order = hdr.dimension_order; % Put "dimension_order" under the info branche
 hdr.info.dimensions = hdr.dimensions; % Put "dimensions" under the info branche
-hdr = rmfield(hdr,'dimensions','dimension_order');
+hdr = rmfield(hdr,{'dimensions','dimension_order'});
 
 %%%%%%%%%%%%%%%%%%%%%%
 %% Matlab and MINC1 %%
@@ -178,7 +179,7 @@ hdr.file_name = '';
 %% Read global attributes
 for num_g = 1:ngatts
     hdr.details.globals(num_g).name   = netcdf.inqAttName(ncid,netcdf.getConstant('NC_GLOBAL'),num_g-1);
-    hdr.details.globals(num_g).values = netcdf.getAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.globals(num_g).name);
+    hdr.details.globals(num_g).values = netcdf.getAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.details.globals(num_g).name);
 end
 
 %% Read dimensions
@@ -201,7 +202,7 @@ for num_v = 1:nvars
 end
 
 %% Read image-min / image-max / image type
-var_names = {hdr.variables(:).name};
+var_names = {hdr.details.variables(:).name};
 hdr.details.data.image_min = netcdf.getVar(ncid,find(ismember(var_names,'image-min'))-1);
 hdr.details.data.image_max = netcdf.getVar(ncid,find(ismember(var_names,'image-max'))-1);
 [tmp,hdr.data.details.type] = netcdf.inqVar(ncid,find(ismember(var_names,'image'))-1);
