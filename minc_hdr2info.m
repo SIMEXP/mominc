@@ -33,16 +33,16 @@ function info_v = minc_hdr2info(hdr)
 
 
 %% Get information on history
-list_global = {hdr.globals(:).name};
+list_global = {hdr.details.globals(:).name};
 ind = find(ismember(list_global,'history'));
 if isempty(ind)
     info_v.history = '';
 else
-    info_v.history = hdr.globals(ind).values;
+    info_v.history = hdr.details.globals(ind).values;
 end
 
 %% Get information on the order of the dimensions
-info_v.dimensions = {hdr.dimensions(:).name};
+info_v.dimensions = hdr.info.dimension_order;
 
 %% For each dimension, get the step, start and cosines information
 start_v = zeros([3 1]);

@@ -15,11 +15,49 @@ function [hdr,vol] = minc_read(file_name,opt)
 % _________________________________________________________________________
 % OUTPUTS:
 %
-% HDR
-%       a structure containing the header of the MINC file..
+% HDR (structure) the header of the MINC file.
+%
+%   FILE_NAME (empty string '') name of the file currently associated with the 
+%      header.
+%
+%   TYPE (string) the file format (either 'minc1', 'minc2').
+%
+%   INFO (structure) simplified form of the header:
+%      FILE_PARENT (string) name of the file that was read.
+%      DIMENSIONS (vector 3*1) the number of elements in each dimensions of the 
+%         data array. Warning : the first dimension is not necessarily 
+%         the "x" axis. See the DIMENSION_ORDER field below.
+%      PRECISION (string, 'float') the precision of data
+%      VOXEL_SIZE (vector 1*3, default [1 1 1]) the size of voxels along each 
+%         spatial dimension in the same order as in VOL.
+%      TR (double, default 1) the time between two volumes (in second). 
+%         This field is present only for 3D+t data.
+%      T0 (double, default 0) the time corresponding to the first volume (in second).
+%      MAT (2D array 4*4) an affine transform from voxel to world space.
+%      DIMENSION_ORDER (cell of strings) describes the dimensions of vol. 
+%         Typically 'xspace' (left to right), 'yspace' (posterior to anterior)
+%         'zspace' (ventral to dorsal) and 'time', but could be anything really.
+%      HISTORY (string) the history of the file.
+%
+%    DETAILS (structure) detailed form of the header, with the following fields:
+%      DATA (structure) with the following fields:
+%         IMAGE_MAX (double) the max of the volume.
+%         IMAGE_MIN (double) the min of the volume.
+%         TYPE (integer or string) the data type of the original minc volume.
+%            VOL is always loaded as a float though.
+%      GLOBALS (structure) with as many entries as global variables, and the 
+%         following fields:
+%         NAME (string) the name of the global variable 
+%         VALUE (arbitrary) the value of the global variable.
+%      VARIABLES (structure) with as many entries as variables, and the 
+%         following fields:
+%         NAME (string) the name of the global variable 
+%         TYPE (integer or string) the type of the variable
+%         ATTRIBUTES (cell) each entry is the (string) name of an attribute.
+%         VALUES (cell) each entry is the (arbitrary) value of an attribute.      
 %
 % VOL
-%       (4D or 3D array of double) the dataset.
+%       (array of double) the dataset.
 %
 % _________________________________________________________________________
 % SEE ALSO:
@@ -46,6 +84,18 @@ function [hdr,vol] = minc_read(file_name,opt)
 % NOTE 2:
 %   VOL is the raw numerical array stored in the MINC file, in the so-called
 %   voxel space. In particular, no operation is made to re-order dimensions.
+%
+% NOTE 3:
+%   To read the content of variables in the minc file, (global or otherwise) it
+%   is convenient to use MINC_VARIABLE.
+%
+% NOTE 4:
+%   The multi resolution feature of minc2 is not supported. Only the full resolution 
+%   image is read. 
+%
+% NOTE 5:
+%   The data is always read in float precision, whatever the original precision 
+%   may be. 
 %
 % Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
 % gériatrie de Montréal, Département d'informatique et de recherche
@@ -115,6 +165,9 @@ else
 end
 
 hdr.info = minc_hdr2info(hdr);
+hdr.info.dimension_order = hdr.dimension_order; % Put "dimension_order" under the info branche
+hdr.info.dimensions = hdr.dimensions; % Put "dimensions" under the info branche
+hdr = rmfield(hdr,'dimensions','dimension_order');
 
 %%%%%%%%%%%%%%%%%%%%%%
 %% Matlab and MINC1 %%
@@ -124,32 +177,34 @@ hdr.file_name = '';
 
 %% Read global attributes
 for num_g = 1:ngatts
-    hdr.globals(num_g).name   = netcdf.inqAttName(ncid,netcdf.getConstant('NC_GLOBAL'),num_g-1);
-    hdr.globals(num_g).values = netcdf.getAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.globals(num_g).name);
+    hdr.details.globals(num_g).name   = netcdf.inqAttName(ncid,netcdf.getConstant('NC_GLOBAL'),num_g-1);
+    hdr.details.globals(num_g).values = netcdf.getAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.globals(num_g).name);
 end
 
 %% Read dimensions
+hdr.dimension_order = cell(1,ndims);
+hdr.dimensions = zeros(1,ndims);
 for num_d = 1:ndims
-    [hdr.dimensions(num_d).name,hdr.dimensions(num_d).length] = netcdf.inqDim(ncid,num_d-1);
+    [hdr.dimension_order{num_d},hdr.dimensions(num_d)] = netcdf.inqDim(ncid,num_d-1);
 end
-hdr.dimensions = hdr.dimensions(end:-1:1); % in matlab, ordering of dimensions is reversed compared to NETCDF
+hdr.dimension_order = hdr.dimension_order(end:-1:1); % in matlab, ordering of dimensions is reversed compared to NETCDF
 
 %% Read variables
 for num_v = 1:nvars
-    [hdr.variables(num_v).name,hdr.variables(num_v).type,dimids,natts] = netcdf.inqVar(ncid,num_v-1);
-    hdr.variables(num_v).attributes                                    = cell([natts 1]);
-    hdr.variables(num_v).values                                        = cell([natts 1]);
+    [hdr.details.variables(num_v).name,hdr.details.variables(num_v).type,dimids,natts] = netcdf.inqVar(ncid,num_v-1);
+    hdr.details.variables(num_v).attributes = cell([natts 1]);
+    hdr.details.variables(num_v).values     = cell([natts 1]);
     for num_a = 1:natts        
-        hdr.variables(num_v).attributes{num_a} = netcdf.inqAttName(ncid,num_v-1,num_a-1);
-        hdr.variables(num_v).values{num_a}     = netcdf.getAtt(ncid,num_v-1,hdr.variables(num_v).attributes{num_a});        
+        hdr.details.variables(num_v).attributes{num_a} = netcdf.inqAttName(ncid,num_v-1,num_a-1);
+        hdr.details.variables(num_v).values{num_a}     = netcdf.getAtt(ncid,num_v-1,hdr.details.variables(num_v).attributes{num_a});        
     end
 end
 
 %% Read image-min / image-max / image type
 var_names = {hdr.variables(:).name};
-hdr.data.image_min = netcdf.getVar(ncid,find(ismember(var_names,'image-min'))-1);
-hdr.data.image_max = netcdf.getVar(ncid,find(ismember(var_names,'image-max'))-1);
-[tmp,hdr.data.type] = netcdf.inqVar(ncid,find(ismember(var_names,'image'))-1);
+hdr.details.data.image_min = netcdf.getVar(ncid,find(ismember(var_names,'image-min'))-1);
+hdr.details.data.image_max = netcdf.getVar(ncid,find(ismember(var_names,'image-max'))-1);
+[tmp,hdr.data.details.type] = netcdf.inqVar(ncid,find(ismember(var_names,'image'))-1);
 
 %% Read volume
 if nargout > 1
