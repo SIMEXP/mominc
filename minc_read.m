@@ -54,7 +54,7 @@ function [hdr,vol] = minc_read(file_name,opt)
 %         NAME (string) the name of the global variable 
 %         TYPE (integer or string) the type of the variable
 %         ATTRIBUTES (cell) each entry is the (string) name of an attribute.
-%         VALUES (cell) each entry is the (arbitrary) value of an attribute.      
+%         VALUES (cell) each entry is the (arbitrary) value of an attribute.
 %
 % VOL
 %       (array of double) the dataset.
@@ -86,8 +86,7 @@ function [hdr,vol] = minc_read(file_name,opt)
 %   voxel space. In particular, no operation is made to re-order dimensions.
 %
 % NOTE 3:
-%   To read the content of variables in the minc file, (global or otherwise) it
-%   is convenient to use MINC_VARIABLE.
+%   To read the content of variables in the minc file, see MINC_VARIABLE.
 %
 % NOTE 4:
 %   The multi resolution feature of minc2 is not supported. Only the full resolution 
@@ -99,11 +98,11 @@ function [hdr,vol] = minc_read(file_name,opt)
 %
 % Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
 % gériatrie de Montréal, Département d'informatique et de recherche
-% opérationnelle, Université de Montréal, 2010.
+% opérationnelle, Université de Montréal, 2013.
 %
 % Maintainer : pierre.bellec@criugm.qc.ca
 % See licensing information in the code.
-% Keywords : medical imaging, I/O, reader, minc
+% Keywords : medical imaging, I/O, reader, minc, netcdf, hdf5
 
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal
@@ -164,7 +163,8 @@ else
     end
 end
 
-hdr.info = minc_hdr2info(hdr);
+% generate a simplified version of the header
+hdr.info = minc_hdr2info(hdr); % The bulk of the work is done in a separate function
 hdr.info.file_parent = which(file_name); % Add the name of the parent file 
 hdr.info.dimension_order = hdr.dimension_order; % Put "dimension_order" under the info branche
 hdr.info.dimensions = hdr.dimensions; % Put "dimensions" under the info branche
@@ -209,7 +209,7 @@ hdr.details.data.image_max = netcdf.getVar(ncid,find(ismember(var_names,'image-m
 
 %% Read volume
 if nargout > 1
-    vol = netcdf.getVar(ncid,find(ismember(var_names,'image'))-1);
+    vol = double(netcdf.getVar(ncid,find(ismember(var_names,'image'))-1));
 end
 netcdf.close(ncid);
 
