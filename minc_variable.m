@@ -1,39 +1,29 @@
 function val = minc_variable(hdr,var_name,att_name)
 % Read a MINC variable inside a header
-%
-% SYNTAX:
 % VAL = MINC_VARIABLE( HDR , [VAR_NAME] , [ATT_NAME] )
-%
-% _________________________________________________________________________
-% INPUTS:
 %
 % HDR (structure) a minc header read with MINC_READ
 % VAR_NAME (string, optional) the name of a variable. 
 % ATT_NAME (string, optional) the name of an attribute.
-%
-% _________________________________________________________________________
-% OUTPUTS:
-%
-% VAL (various types) if VAR_NAME and ATT_NAME are both specified, VAL is 
-%   the value of the specified variable/attribute. If only VAR_NAME is specified
-%   VAL is the list of attributes of the variable (cell of strings). If VAR_NAME
-%   is unspecified, VAL is the list of variables (cell of strings). 
+% VAL (various types) 
+%   if VAR_NAME and ATT_NAME are both specified, VAL is the value of the 
+%      specified variable/attribute. 
+%   If only VAR_NAME is specified, VAL is the list of attributes of the 
+%      variable (cell of strings). 
+%   If VAR_NAME is unspecified, VAL is the list of variables (cell of strings). 
 %   
-% _________________________________________________________________________
-% SEE ALSO:
-% MINC_READ
-%
-% _________________________________________________________________________
-% COMMENTS:
-%
-% Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
-% gériatrie de Montréal, Département d'informatique et de recherche
-% opérationnelle, Université de Montréal, 2013.
+% Example:
+% [hdr,vol] = minc_read('my_vol.mnc');
+% dcosinesy = minc_variable(hdr,'yspace','direction_cosines');
 %
 % Maintainer : pierre.bellec@criugm.qc.ca
-% See licensing information in the code.
-% Keywords : medical imaging, I/O, reader, minc
+% See licensing information in the code. 
 
+% Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
+% gériatrie de Montréal, Département d'informatique et de recherche
+% opérationnelle, Université de Montréal, 2013-2014.
+% Keywords : medical imaging, I/O, reader, minc
+%
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal
 % in the Software without restriction, including without limitation the rights
