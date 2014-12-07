@@ -1,27 +1,13 @@
 function [hdr,vol] = minc_read(file_name,opt)
-% Read a MINC file
-% To learn more about the MINC format :
-% http://en.wikibooks.org/wiki/MINC
+% Read a MINC file http://en.wikibooks.org/wiki/MINC
 %
-% SYNTAX:
 % [HDR,VOL] = MINC_READ(FILE_NAME,OPT)
 %
-% _________________________________________________________________________
-% INPUTS:
-%
-% FILE_NAME
-%   (string) the name of a minc file.
-%
-% _________________________________________________________________________
-% OUTPUTS:
-%
-% HDR (structure) the header of the MINC file.
-%
+% FILE_NAME (string) the name of a minc file.
+% HDR 
 %   FILE_NAME (empty string '') name of the file currently associated with the 
 %      header.
-%
 %   TYPE (string) the file format (either 'minc1', 'minc2').
-%
 %   INFO (structure) simplified form of the header:
 %      FILE_PARENT (string) name of the file that was read.
 %      DIMENSIONS (vector 3*1) the number of elements in each dimensions of the 
@@ -38,7 +24,6 @@ function [hdr,vol] = minc_read(file_name,opt)
 %         Typically 'xspace' (left to right), 'yspace' (posterior to anterior)
 %         'zspace' (ventral to dorsal) and 'time', but could be anything really.
 %      HISTORY (string) the history of the file.
-%
 %    DETAILS (structure) detailed form of the header, with the following fields:
 %      DATA (structure) with the following fields:
 %         IMAGE_MAX (double) the max of the volume.
@@ -55,17 +40,14 @@ function [hdr,vol] = minc_read(file_name,opt)
 %         TYPE (integer or string) the type of the variable
 %         ATTRIBUTES (cell) each entry is the (string) name of an attribute.
 %         VALUES (cell) each entry is the (arbitrary) value of an attribute.
+% VOL (array of double) the dataset.
 %
-% VOL
-%       (array of double) the dataset.
+% EXAMPLE:
+% [hdr,vol] = minc_read('my_file.mnc');
 %
-% _________________________________________________________________________
-% SEE ALSO:
-% MINC_WRITE, MINC_VOXEL2WORLD, MINC_WORLD2VOXEL, MINC_VARIABLE
-%
-% _________________________________________________________________________
-% COMMENTS:
-%
+% See license and notes in the code. 
+% Maintainer : pierre.bellec@criugm.qc.ca
+
 % NOTE 1:
 %   The strategy is different in Matlab and Octave.
 %   In Matlab, the strategy is different for MINC1 (NetCDF) and MINC2 (HDF5).
@@ -76,10 +58,6 @@ function [hdr,vol] = minc_read(file_name,opt)
 %
 %      For MINC2 files, the multiresolution feature is not supported. Only full
 %      resolution images are read.
-%
-%   In Octave :
-%      Octave is not currently supported, although this is part of the plan 
-%      (with no clear timeline for completion). 
 %
 % NOTE 2:
 %   VOL is the raw numerical array stored in the MINC file, in the so-called
@@ -98,12 +76,11 @@ function [hdr,vol] = minc_read(file_name,opt)
 %
 % Copyright (c) Pierre Bellec, Centre de recherche de l'institut de
 % gériatrie de Montréal, Département d'informatique et de recherche
-% opérationnelle, Université de Montréal, 2013.
+% opérationnelle, Université de Montréal, 2013-2014.
 %
-% Maintainer : pierre.bellec@criugm.qc.ca
 % See licensing information in the code.
 % Keywords : medical imaging, I/O, reader, minc, netcdf, hdf5
-
+%
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal
 % in the Software without restriction, including without limitation the rights
@@ -128,26 +105,21 @@ if exist('OCTAVE_VERSION','builtin')
 else
     %% This is Matlab
     %% Test if the file is in MINC1 or MINC2 format
-    try
-        % MINC2 ?
-        str_data      = hdf5info(file_name);
-        hdr.type      = 'minc2';
-        
-    catch
-        % MINC1 ?
-        try
-            ncid     = netcdf.open(file_name,'NOWRITE');
-            [ndims,nvars,ngatts] = netcdf.inq(ncid);
-            hdr.type = 'minc1';
-        catch
-            % Huho, neither format seems to work
-            if exist(file_name,'file')
-                error('This file does not seem to be in either MINC1 or MINC2 format.')
-            else
-                error('I could not find the file')
-            end
-        end
+    fid = fopen(file_name, 'r');
+    if (fid < 0)
+        error('Cannot open file %.',file_name);
     end
+    % Read the first 4 bytes to detect the format
+    f = fread(fid, [1 4], '*char');
+    if isequal(f(2:4), 'HDF')
+        hdr.type = 'minc2';
+    elseif isequal(f(1:3), 'CDF')
+        hdr.type = 'minc1';
+    else
+        error('Could not detect MINC version.');
+    end
+    % Close file
+    fclose(fid);
     if strcmp(hdr.type,'minc1')
         if nargout>1
             [hdr,vol] = sub_read_matlab_minc1(hdr,ncid,ndims,nvars,ngatts);
