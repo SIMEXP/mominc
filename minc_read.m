@@ -99,6 +99,27 @@ function [hdr,vol] = minc_read(file_name,opt)
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 % THE SOFTWARE.
 
+% Test if the file name is a string
+if ~ischar(file_name)
+    error('FILE_NAME should be a string, for example ''my_file.mnc'' or ''my_file.mnc.gz''')
+end
+
+% Test if the file name has the right extension
+[file_path,file_core,file_ext] = fileparts(file_name);
+if ~ismember(file_ext,{'.mnc','.gz'})
+    error('The extension of the file should be either .mnc or .mnc.gz')
+end
+
+% Deal with .mnc.gz files
+if strcmp(file_ext,'.gz')
+    % This is a zipped file, unzip it in the temp folder and read it from there
+    path_tmp = tempname;
+    file_tmp = gunzip(file_name,path_tmp);
+    [hdr,vol] = minc_read(file_tmp{1});
+    rmdir(path_tmp,'s')
+    return
+end
+
 if exist('OCTAVE_VERSION','builtin')
     %% This is Octave
     error('minc_read does not currently support Octave. Sorry dude I have to quit.')
@@ -120,13 +141,18 @@ else
     end
     % Close file
     fclose(fid);
+
     if strcmp(hdr.type,'minc1')
+        ncid     = netcdf.open(file_name,'NOWRITE');
+        [nbdims,nvars,ngatts] = netcdf.inq(ncid);
+        hdr.type = 'minc1';       
         if nargout>1
-            [hdr,vol] = sub_read_matlab_minc1(hdr,ncid,ndims,nvars,ngatts);
+            [hdr,vol] = sub_read_matlab_minc1(hdr,ncid,nbdims,nvars,ngatts);
         else
-            hdr = sub_read_matlab_minc1(hdr,ncid,ndims,nvars,ngatts);
+            hdr = sub_read_matlab_minc1(hdr,ncid,nbdims,nvars,ngatts);
         end
     else
+        str_data = hdf5info(file_name);
         if nargout>1
             [hdr,vol] = sub_read_matlab_minc2(str_data,hdr,file_name);
         else
@@ -142,6 +168,38 @@ hdr.info.dimension_order = hdr.dimension_order; % Put "dimension_order" under th
 hdr.info.dimensions = hdr.dimensions; % Put "dimensions" under the info branche
 hdr = rmfield(hdr,{'dimensions','dimension_order'});
 
+% Normalize the data
+if size(hdr.details.data.image_min,2)>1
+    error('Normalization with more than one dimension is not supported')
+end
+if ~isempty(hdr.details.data.image_min)&&~isempty(hdr.details.data.image_max)
+    if (length(hdr.details.data.image_min)==1)&&(length(hdr.details.data.image_max)==1)&&((abs(min(vol(:))-hdr.details.data.image_min)>eps)||(abs(max(vol(:))-hdr.details.data.image_max)>eps))
+        vol = ((vol-min(vol(:)))/(max(vol(:))-min(vol(:))))*(hdr.details.data.image_max-hdr.details.data.image_min)+hdr.details.data.image_min;
+    elseif (length(hdr.details.data.image_min)>1)&&(length(hdr.details.data.image_min)==length(hdr.details.data.image_max))&&(length(hdr.details.data.image_min)==size(vol,ndims(vol)))
+        switch ndims(vol)
+            case 3
+                min_vol = squeeze(min(min(vol)));
+                max_vol = squeeze(max(max(vol)));
+                if any(abs(min_vol(:)-hdr.details.data.image_min(:))>eps)||any(abs(max_vol(:)-hdr.details.data.image_max(:))>eps)
+                    weights = reshape(repmat(max_vol'-min_vol',[size(vol,1)*size(vol,2) 1]),size(vol));
+                    weights(weights==0) = 1;
+                    vol = (vol - reshape(repmat(min_vol',[size(vol,1)*size(vol,2) 1]),size(vol)))./weights;
+                    vol = vol.*(reshape(repmat(hdr.details.data.image_max(:)',[size(vol,1)*size(vol,2) 1]),size(vol))-reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2) 1]),size(vol)))+reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2) 1]),size(vol));
+                end
+            case 4
+                min_vol = squeeze(min(min(min(vol))));
+                max_vol = squeeze(max(max(max(vol))));
+                if any(abs(min_vol(:)-hdr.details.data.image_min(:))>eps)||any(abs(max_vol(:)-hdr.details.data.image_max(:))>eps)
+                    weights = reshape(repmat(max_vol'-min_vol',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol));
+                    weights(weights==0) = 1;
+                    vol = (vol - reshape(repmat(min_vol',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol)))./weights;
+                    vol = vol.*(reshape(repmat(hdr.details.data.image_max(:)',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol))-reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol)))+reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol));
+                end 
+            otherwise
+                error('slice-based intensity normalization is not supported when the dimensionality of the array is not 3 or 4')
+        end
+    end 
+end
 %%%%%%%%%%%%%%%%%%%%%%
 %% Matlab and MINC1 %%
 %%%%%%%%%%%%%%%%%%%%%%
