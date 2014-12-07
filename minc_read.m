@@ -168,6 +168,10 @@ hdr.info.dimension_order = hdr.dimension_order; % Put "dimension_order" under th
 hdr.info.dimensions = hdr.dimensions; % Put "dimensions" under the info branche
 hdr = rmfield(hdr,{'dimensions','dimension_order'});
 
+if nargout < 1
+    return
+end
+
 % Apply the "unsigned" trick in minc 1
 if strcmp(hdr.type,'minc1')
     flag_unsigned = strcmp(minc_variable(hdr,'image','signtype'),'unsigned');
