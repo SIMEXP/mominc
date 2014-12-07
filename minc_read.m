@@ -200,9 +200,11 @@ if ~isempty(hdr.details.data.image_min)&&~isempty(hdr.details.data.image_max)
         end
     end 
 end
+
 %%%%%%%%%%%%%%%%%%%%%%
 %% Matlab and MINC1 %%
 %%%%%%%%%%%%%%%%%%%%%%
+
 function [hdr,vol] = sub_read_matlab_minc1(hdr,ncid,ndims,nvars,ngatts)
 hdr.file_name = '';
 
@@ -235,7 +237,7 @@ end
 var_names = {hdr.details.variables(:).name};
 hdr.details.data.image_min = netcdf.getVar(ncid,find(ismember(var_names,'image-min'))-1);
 hdr.details.data.image_max = netcdf.getVar(ncid,find(ismember(var_names,'image-max'))-1);
-[tmp,hdr.data.details.type] = netcdf.inqVar(ncid,find(ismember(var_names,'image'))-1);
+[tmp,hdr.details.data.type] = netcdf.inqVar(ncid,find(ismember(var_names,'image'))-1);
 
 %% Read volume
 if nargout > 1
@@ -248,50 +250,69 @@ netcdf.close(ncid);
 %%%%%%%%%%%%%%%%%%%%%%
 
 function [hdr,vol] = sub_read_matlab_minc2(str_data,hdr,file_name)
-hdr.history = hdf5read(file_name,'/minc-2.0/history');
-hdr.ident     = hdf5read(file_name,'/minc-2.0/ident');
+
+%% Globals
+hdr.details.globals.history = hdf5read(file_name,'/minc-2.0/','history');
+hdr.details.globals.ident = hdf5read(file_name,'/minc-2.0/','ident');
+hdr.details.globals.minc_version =  hdf5read(file_name,'/minc-2.0/','minc_version'); 
+
+%% Extract dimension order in a usable format
+tmp = hdf5read(file_name,'/minc-2.0/image/0/image/','dimorder');
+tmp = tmp.data;
+ind = strfind(tmp,',');
+nb_dims = length(ind)+1;
+curr_pos = 1;
+ind = [ind length(tmp)+1];
+for num_dim = 1:nb_dims
+    hdr.dimension_order{num_dim} = tmp(curr_pos:ind(num_dim)-1);
+    curr_pos = ind(num_dim)+1;
+end
+hdr.dimension_order = hdr.dimension_order(end:-1:1); % Matlab/Octave invert dimension orders compared to HDF5 
 hdr.file_name = '';
 labels        = {str_data.GroupHierarchy.Groups.Groups(:).Name};
 
-%% Read dimensions
-mask_dim        = ismember(labels,'/minc-2.0/dimensions');
-list_dimensions = {str_data.GroupHierarchy.Groups.Groups(mask_dim).Datasets(:).Name};
+%% Read dimensions length
+for num_dim = 1:nb_dims
+    hdr.dimensions(num_dim) = hdf5read(file_name,['/minc-2.0/dimensions/' hdr.dimension_order{num_dim} ,'/'],'length');
+end
 
+%% Read dimensions
+mask_dim  = ismember(labels,'/minc-2.0/dimensions');
+list_dimensions = {str_data.GroupHierarchy.Groups.Groups(mask_dim).Datasets(:).Name};
 for num_d = 1:length(list_dimensions)
-    hdr.dimensions(num_d).name        = list_dimensions{num_d}(22:end);
-    hdr.dimensions(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Name};
-    hdr.dimensions(num_d).values      = {str_data.GroupHierarchy.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Value};
+    hdr.details.variables(num_d).name        = list_dimensions{num_d}(22:end);
+    hdr.details.variables(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Name};
+    hdr.details.variables(num_d).values      = {str_data.GroupHierarchy.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Value};
 end
 
 %% Read Info
 mask_info  = ismember(labels,'/minc-2.0/info');
+nb_var = length(list_dimensions);
 if ~isempty(str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets)
     list_info = {str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets(:).Name};
     for num_d = 1:length(list_info)
-        hdr.info(num_d).name        = list_info{num_d}(16:end);
-        hdr.info(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Name};
-        hdr.info(num_d).values      = {str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Value};
+        nb_var = nb_var+1;
+        hdr.details.variables(nb_var).name        = list_info{num_d}(16:end);
+        hdr.details.variables(nb_var).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Name};
+        hdr.details.variables(nb_var).values      = {str_data.GroupHierarchy.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Value};
     end
-else
-    hdr.info.name       = {};
-    hdr.info.attributes = {};
-    hdr.info.values     = {};
 end
 
 %% Read Image info
 mask_image  = ismember(labels,'/minc-2.0/image');
 list_image = {str_data.GroupHierarchy.Groups.Groups(mask_image).Groups.Datasets(:).Name};
 for num_d = 1:length(list_image)
-    hdr.image(num_d).name        = list_image{num_d}(19:end);
-    hdr.image(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Name};
-    hdr.image(num_d).values      = {str_data.GroupHierarchy.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Value};
+    hdr.details.image(num_d).name        = list_image{num_d}(19:end);
+    hdr.details.image(num_d).attributes  = {str_data.GroupHierarchy.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Name};
+    hdr.details.image(num_d).values      = {str_data.GroupHierarchy.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Value};
 end
 
 %% Read image-min / image-max
-hdr.data.image_min = hdf5read(file_name,'/minc-2.0/image/0/image-min');
-hdr.data.image_max = hdf5read(file_name,'/minc-2.0/image/0/image-max');
+hdr.details.data.image_min = hdf5read(file_name,'/minc-2.0/image/0/image-min');
+hdr.details.data.image_max = hdf5read(file_name,'/minc-2.0/image/0/image-max');
 
 %% Read volume
 if nargout>1
     vol = hdf5read(file_name,'/minc-2.0/image/0/image');
+    vol = double(vol); % Convert everything to double to avoid problems, even if that's dirty
 end

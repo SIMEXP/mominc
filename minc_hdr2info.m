@@ -33,12 +33,16 @@ function info_v = minc_hdr2info(hdr)
 
 
 %% Get information on history
-list_global = {hdr.details.globals(:).name};
-ind = find(ismember(list_global,'history'));
-if isempty(ind)
-    info_v.history = '';
+if strcmp(hdr.type,'minc1')
+    list_global = {hdr.details.globals(:).name};
+    ind = find(ismember(list_global,'history'));
+    if isempty(ind)
+        info_v.history = '';
+    else
+        info_v.history = hdr.details.globals(ind).values;
+    end
 else
-    info_v.history = hdr.details.globals(ind).values;
+    info_v.history = hdr.details.globals.history.data;
 end
 
 %% Get information on the order of the dimensions
@@ -56,26 +60,15 @@ for num_d = 1:length(info_v.dimensions)
     dim_name = info_v.dimensions{num_d};
 
     if ~strcmp(dim_name,'time')
-        try
-            step_v(num_e) = minc_variable(hdr,dim_name,'step');
-        end
-        try
+        if strcmp(hdr.type,'minc1')
             cosines_v(:,num_e) = minc_variable(hdr,dim_name,'direction_cosines');
-        catch
-            switch dim_name
-                case 'xspace'
-                    cosines_v(:,num_e) = [1;0;0];
-                case 'yspace'
-                    cosines_v(:,num_e) = [0;1;0];
-                case 'zspace'
-                    cosines_v(:,num_e) = [0;0;1];
-            end
-        end        
-
-        try
             start_v(num_e) = minc_variable(hdr,dim_name,'start');
-        end
-        
+            step_v(num_e) = minc_variable(hdr,dim_name,'step');
+        else
+            cosines_v(:,num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/direction_cosines']);
+            start_v(num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/start']);
+            step_v(num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/step']); 
+        end        
         num_e = num_e + 1;
     else        
         info_v.tr = minc_variable(hdr,'time','step');
