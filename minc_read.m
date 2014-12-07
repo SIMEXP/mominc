@@ -168,6 +168,15 @@ hdr.info.dimension_order = hdr.dimension_order; % Put "dimension_order" under th
 hdr.info.dimensions = hdr.dimensions; % Put "dimensions" under the info branche
 hdr = rmfield(hdr,{'dimensions','dimension_order'});
 
+% Apply the "unsigned" trick in minc 1
+if strcmp(hdr.type,'minc1')
+    flag_unsigned = strcmp(minc_variable(hdr,'image','signtype'),'unsigned');
+    vrange = minc_variable(hdr,'image','valid_range');
+    if flag_unsigned
+        vol(vol<0) = vol(vol<0) + vrange(2) + 1;
+    end
+end
+
 % Normalize the data
 if size(hdr.details.data.image_min,2)>1
     error('Normalization with more than one dimension is not supported')
