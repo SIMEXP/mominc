@@ -42,7 +42,7 @@ if strcmp(hdr.type,'minc1')
         info_v.history = hdr.details.globals(ind).values;
     end
 else
-    info_v.history = hdr.details.globals.history.data;
+    info_v.history = hdr.details.globals.history;
 end
 
 %% Get information on the order of the dimensions

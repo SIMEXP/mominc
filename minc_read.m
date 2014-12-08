@@ -265,9 +265,19 @@ netcdf.close(ncid);
 function [hdr,vol] = sub_read_matlab_minc2(str_data,hdr,file_name)
 
 %% Globals
-hdr.details.globals.history = hdf5read(file_name,'/minc-2.0/','history');
-hdr.details.globals.ident = hdf5read(file_name,'/minc-2.0/','ident');
-hdr.details.globals.minc_version =  hdf5read(file_name,'/minc-2.0/','minc_version'); 
+hdr.details.globals.history = '';
+hdr.details.globals.ident = '';
+hdr.details.globals.minc_version = '';
+list_globals = {str_data.GroupHierarchy.Groups.Attributes.Name};
+for num_global = 1:length(list_globals)
+    if strfind(list_globals{num_global},'history')
+        hdr.details.globals.history = str_data.GroupHierarchy.Groups.Attributes(num_global).Value.Data;
+    elseif strfind(list_globals{num_global},'ident') 
+        hdr.details.globals.ident = str_data.GroupHierarchy.Groups.Attributes(num_global).Value.Data;
+    elseif strfind(list_globals{num_global},'minc_version') 
+        hdr.details.globals.ident = str_data.GroupHierarchy.Groups.Attributes(num_global).Value.Data;
+    end
+end
 
 %% Extract dimension order in a usable format
 tmp = hdf5read(file_name,'/minc-2.0/image/0/image/','dimorder');
