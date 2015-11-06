@@ -7,7 +7,7 @@ The plan is that both MINC1 and MINC2 will be supported for Matlab and Octave. C
 
 **How to read a volume:** To read `file.mnc`, type:
 ```matlab
-[hdr,vol] = minc_read('file.mc');
+[hdr,vol] = minc_read('file.mnc');
 ```
 The extension can also be `.mnc.gz` (typically for minc1 files). The array `vol` contains the data, in voxel space (no re-orientation is performed to arrange dimensions in a specific order). The structure `hdr` contains all header infos. 
 
