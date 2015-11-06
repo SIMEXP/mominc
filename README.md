@@ -28,4 +28,4 @@ will list all variables available in the header. And
 ```
 minc_variable(hdr,'yspace')
 ```
-will list all the attributes of the `'yspace'` variable. This API will work identically in MINC1 and MINC2. 
+will list all the attributes of the `yspace` variable. 
