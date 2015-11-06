@@ -5,6 +5,8 @@ MOMinc is a small set of functions to read/write MINC files in Matlab and Octave
 
 The plan is that both MINC1 and MINC2 will be supported for Matlab and Octave. Currently the reader works for MINC1 and MINC2 in Matlab, but has not been tested enough to be considered robust. In particular, it is intended to deal with structural and functional MRI data, and may or may not work for other modalities. The writer and the support for Octave are a work in progress.
 
+**Installation:** Simply download the latest [release](https://github.com/SIMEXP/mominc/releases), uncompress the folder and add it to your matlab or octave search path. 
+
 **How to read a volume:** To read `file.mnc`, type:
 ```matlab
 [hdr,vol] = minc_read('file.mnc');
